@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Testimonials Recordings</title>
+    <link href="https://fonts.googleapis.com/css?family=Raleway:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.0.min.js"
+        integrity="sha256-BJeo0qm959uMBGb65z40ejJYGSgR7REI4+CW1fNKwOg=" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <script src="https://code.jquery.com/jquery-3.4.0.min.js"></script>
+<!--    <script src="static/front_end/Js/script3.js"></script>-->
+<!--    <link rel="stylesheet" href="static/front_end/css/style.css">-->
+
+	<script>
+	/*
+
+JQUERY: STOPWATCH & COUNTDOWN
+
+This is a basic stopwatch & countdown plugin to run with jquery. Start timer, pause it, stop it or reset it. Same behaviour with the countdown besides you need to input the countdown value in seconds first. At the end of the countdown a callback function is invoked.
+
+Any questions, suggestions? marc.fuehnen(at)gmail.com
+
+*/
+
+$(document).ready(function() {
+
+    (function($){
+    
+        $.extend({
+            
+            APP : {                
+                
+                formatTimer : function(a) {
+                    if (a < 10) {
+                        a = '0' + a;
+                    }                              
+                    return a;
+                },    
+                
+                startTimer : function(dir) {
+                    
+                    var a;
+                    
+                    // save type
+                    $.APP.dir = dir;
+                    
+                    // get current date
+                    $.APP.d1 = new Date();
+                    
+                    switch($.APP.state) {
+                            
+                        case 'pause' :
+                            
+                            // resume timer
+                            // get current timestamp (for calculations) and
+                            // substract time difference between pause and now
+                            $.APP.t1 = $.APP.d1.getTime() - $.APP.td;                            
+                            
+                        break;
+                            
+                        default :
+                            
+                            // get current timestamp (for calculations)
+                            $.APP.t1 = $.APP.d1.getTime(); 
+                            
+                            // if countdown add ms based on seconds in textfield
+                            if ($.APP.dir === 'cd') {
+                                $.APP.t1 += parseInt($('#cd_seconds').val())*1000;
+                            }    
+                        
+                        break;
+                            
+                    }                                   
+                    
+                    // reset state
+                    $.APP.state = 'alive';   
+                    $('#' + $.APP.dir + '_status').html('Running');
+                    
+                    // start loop
+                    $.APP.loopTimer();
+                    
+                },
+                
+                pauseTimer : function() {
+                    
+                    // save timestamp of pause
+                    $.APP.dp = new Date();
+                    $.APP.tp = $.APP.dp.getTime();
+                    
+                    // save elapsed time (until pause)
+                    $.APP.td = $.APP.tp - $.APP.t1;
+                    
+                    // change button value
+                    $('#' + $.APP.dir + '_start').val('Resume');
+                    
+                    // set state
+                    $.APP.state = 'pause';
+                    $('#' + $.APP.dir + '_status').html('Paused');
+                    
+                },
+                
+                stopTimer : function() {
+                    
+                    // change button value
+                    $('#' + $.APP.dir + '_start').val('Restart');                    
+                    
+                    // set state
+                    $.APP.state = 'stop';
+                    $('#' + $.APP.dir + '_status').html('Stopped');
+                    
+                },
+                
+                resetTimer : function() {
+
+                    // reset display
+                    $('#' + $.APP.dir + '_ms,#' + $.APP.dir + '_s,#' + $.APP.dir + '_m,#' + $.APP.dir + '_h').html('00');                 
+                    
+                    // change button value
+                    $('#' + $.APP.dir + '_start').val('Start');                    
+                    
+                    // set state
+                    $.APP.state = 'reset';  
+                    $('#' + $.APP.dir + '_status').html('Reset & Idle again');
+                    
+                },
+                
+                endTimer : function(callback) {
+                   
+                    // change button value
+                    $('#' + $.APP.dir + '_start').val('Restart');
+                    
+                    // set state
+                    $.APP.state = 'end';
+                    
+                    // invoke callback
+                    if (typeof callback === 'function') {
+                        callback();
+                    }    
+                    
+                },    
+                
+                loopTimer : function() {
+                    
+                    var td;
+                    var d2,t2;
+                    
+                    var ms = 0;
+                    var s  = 0;
+                    var m  = 0;
+                    var h  = 0;
+                    
+                    if ($.APP.state === 'alive') {
+                                
+                        // get current date and convert it into 
+                        // timestamp for calculations
+                        d2 = new Date();
+                        t2 = d2.getTime();   
+                        
+                        // calculate time difference between
+                        // initial and current timestamp
+                        if ($.APP.dir === 'sw') {
+                            td = t2 - $.APP.t1;
+                        // reversed if countdown
+                        } else {
+                            td = $.APP.t1 - t2;
+                            if (td <= 0) {
+                                // if time difference is 0 end countdown
+                                $.APP.endTimer(function(){
+                                    $.APP.resetTimer();
+                                    $('#' + $.APP.dir + '_status').html('Ended & Reset');
+                                });
+                            }    
+                        }    
+                        
+                        // calculate milliseconds
+                        ms = td%1000;
+                        if (ms < 1) {
+                            ms = 0;
+                        } else {    
+                            // calculate seconds
+                            s = (td-ms)/1000;
+                            if (s < 1) {
+                                s = 0;
+                            } else {
+                                // calculate minutes   
+                                var m = (s-(s%60))/60;
+                                if (m < 1) {
+                                    m = 0;
+                                } else {
+                                    // calculate hours
+                                    var h = (m-(m%60))/60;
+                                    if (h < 1) {
+                                        h = 0;
+                                    }                             
+                                }    
+                            }
+                        }
+                      
+                        // substract elapsed minutes & hours
+                        ms = Math.round(ms/100);
+                        s  = s-(m*60);
+                        m  = m-(h*60);                                
+                        
+                        // update display
+                        $('#' + $.APP.dir + '_ms').html($.APP.formatTimer(ms));
+                        $('#' + $.APP.dir + '_s').html($.APP.formatTimer(s));
+                        $('#' + $.APP.dir + '_m').html($.APP.formatTimer(m));
+                        $('#' + $.APP.dir + '_h').html($.APP.formatTimer(h));
+                        
+                        // loop
+                        $.APP.t = setTimeout($.APP.loopTimer,1);
+                    
+                    } else {
+                    
+                        // kill loop
+                        clearTimeout($.APP.t);
+                        return true;
+                    
+                    }  
+                    
+                }
+                    
+            }    
+        
+        });
+          var i=1;
+        $('#record').on('click', function() {
+           
+           
+            if(i%2==0){
+                $('.hideShow').hide();
+                 $.APP.stopTimer();
+            }else{
+                 $('.hideShow').show();
+                 $.APP.startTimer('sw');
+            }
+             ++i;
+        });    
+
+        $('#cd_start').on('click', function() {
+            $.APP.startTimer('cd');
+        });           
+        
+        $('#sw_stop,#cd_stop').on('click', function() {
+           
+        });
+        
+        $('#sw_reset,#cd_reset').on('click', function() {
+            $.APP.resetTimer();
+        });  
+        
+        $('#sw_pause,#cd_pause').on('click', function() {
+            $.APP.pauseTimer();
+        });                
+                
+    })(jQuery);
+        
+});
+
+	</script>
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Raleway', sans-serif;
+            font-size: 16px;
+            color: #777777;
+            /*background-image:  url('Images/left.png');*/
+            /*background-repeat: no-repeat;*/
+            /*background-position: left bottom;*/
+            /*background-image:  url('Images/right.png');*/
+            /*background-position: right top;*/
+                background-color: #eeeeee;
+
+        }
+    body:before{
+      content: "";
+    width: 79vh;
+    height: 100vh;
+    background-image: url(Images/right.png);
+    background-repeat: no-repeat;
+    right: 0px;
+    position: absolute;
+    display: inline-block;
+    z-index: -1;
+
+    }
+    body:after{
+      content: "";
+       width: 90vh;
+    height: 85vh;
+    top: 97px;
+
+    background-image: url(Images/rightt.png);
+    background-repeat: no-repeat;
+    left: 0px;
+    position: absolute;
+    display: inline-block;
+    z-index: -1;
+
+    }
+        .navbar-brand img {
+            width: 250px;
+        }
+
+        .video-container h2 {
+            font-size: 44px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .video-container p {
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .btn-upload {
+            font-size: 22px;
+            text-transform: uppercase;
+            color: #fff;
+            background-color: #333333;
+            border: 1px solid #000;
+            font-weight: 700;
+            transition: all 0.5s ease;
+            border-radius: 0;
+            margin-top: 60px;
+        }
+
+        .btn-upload:hover,
+        .btn-upload:focus {
+            outline: 0;
+            box-shadow: none;
+            color: #333333;
+            background-color: #fff;
+            border: 1px solid #000;
+        }
+
+        .video-testimonial {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .video-area {
+            position: relative;
+        }
+
+        /*.video-area:before {*/
+        /*    content: "";*/
+        /*    display: inline-block;*/
+        /*    width: 50%;*/
+        /*    height: 100%;*/
+        /*    background-image: url('static/front_end/Images/left.png');*/
+        /*    background-repeat: no-repeat;*/
+        /*    min-height: 465px;*/
+        /*    left: 100px;*/
+        /*    position: absolute;*/
+        /*    display: inline-block;*/
+        /*    z-index: -1;*/
+        /*}*/
+
+        /*.video-area:after {*/
+        /*    display: inline-block;*/
+        /*    width: 40%;*/
+        /*    height: 100%;*/
+        /*    background-image: url('static/front_end/Images/right.png');*/
+        /*    background-repeat: no-repeat;*/
+        /*    min-height: 465px;*/
+        /*    content: "";*/
+        /*    right: 12px;*/
+        /*    top: 350px;*/
+        /*    position: absolute;*/
+        /*    display: inline-block;*/
+        /*    z-index: -1;*/
+        /*}*/
+        #videoSource {
+
+            background-color: deepskyblue; /* Green */
+  border: none;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  /*margin: 4px 2px;*/
+  cursor: pointer;
+        padding: 10px 28px;}
+        .record_video {
+            color: #00a7f8;
+            font-size: 24px;
+            font-weight: 700;
+            text-decoration: none;
+            padding-left: 15px;
+        }
+
+
+        a.record_video:hover {
+            color: #00a7f8;
+            text-decoration: none;
+        }
+
+        .record_fuctn {
+            margin-top: 20px;
+        }
+        #videp{
+          margin: auto;
+  width: 60%;
+  border: 3px solid #73AD21;
+  padding: 10px;
+
+        }
+
+        /*.iframe-container {*/
+        /*    margin: 50px 0 0;*/
+        /*}*/
+    .btn {
+background-color: #333333;
+color: #fff;
+text-transform: uppercase;
+border-radius: 0;
+transition: all 0.5s ease;
+-webkit-transition: all 0.5s ease;
+-moz-transition: all 0.5s ease;
+-ms-transition: all 0.5s ease;
+-o-transition: all 0.5s ease;
+}
+
+.btn:hover, .btn:focus {
+background-color: #fff;
+color: #333333;
+border: 1px solid #333333;
+outline: 0;
+box-shadow: none;
+-webkit-box-shadow: none;
+-moz-box-shadow: none;
+}
+    </style>
+</head>
+<body>
+ <header>
+        <nav class="navbar navbar-expand-lg navbar-dark mx-background-top-linear   ">
+            <div class="container-fluid">
+                <a class="navbar-brand logo_main" href="testimonials.html"> <img src="images/logo.png" alt="Logo"
+                        class="logos"></a>
+            </div>
+        </nav>
+    </header>
+    <section class="video-container">
+        <div class="container-fluid">
+            <h2>How Was Your Experience</h2>
+            <p>Share your valuable feedback and help us grow. </p>
+            <div class="row video-area  d-flex justify-content-center">
+<!--                <iframe class="iframe-container" width="800" height="600"-->
+<!--                    src="https://www.youtube.com/watch?v=UB1O30fR-EE">-->
+<!--                </iframe>-->
+<div id="container">
+
+
+
+    <video id="gum" class="videp" playsinline autoplay muted></video>
+<!--    <video id="recorded" playsinline loop></video>-->
+
+    <div class="text-center">
+        <div >
+       
+    </div>
+        <button id="start" class="btn"  >Start camera</button>
+        <button id="record" class="btn" disabled >Start Recording</button>
+        <button class="btn hideShow" style="display:none;width:120px;" >
+             <span id="sw_h">00</span>:
+    <span id="sw_m">00</span>:
+    <span id="sw_s">00</span>:
+    <span id="sw_ms">00</span>
+            
+        </button>
+    </div>
+        <button id="download" class="btn" disabled style="visibility: hidden" >Download</button>
+        <button id="play"  disabled style="visibility: hidden">Play</button>
+    <div>
+
+               <input type="checkbox" id="echoCancellation" checked style="visibility: hidden">
+    </div>
+</div>
+
+<!-- include adapter for srcObject shim -->
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<script src="script2.js" async></script>
+</div>
+
+
+</body>
+</html>
