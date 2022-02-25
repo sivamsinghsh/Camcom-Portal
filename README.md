@@ -1,2 +1,2 @@
 # Camcom-Portal
-It's an portal which can be use to record client video
+It's an cutsom portal which is designed to record and share the clients portfolio.
